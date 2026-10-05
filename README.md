@@ -11,7 +11,7 @@ Instead of a passive chatbot that generates generic UI and forgets complex fixes
 1. Locate your local AI configuration directory (typically `~/.gemini/config/`).
 2. Copy the contents of the `rules/` folder from this repo into `~/.gemini/config/rules/`.
 3. Copy the contents of the `skills/` folder from this repo into `~/.gemini/config/skills/`.
-4. **Customize your AI:** Open `rules/00-persona-config.md` and fill in the `[ ]` brackets to give your AI a custom name, tone, and tech-stack bias.
+4. **The Magic Setup:** Open a new chat session and simply say "Hello". The AI will detect that it is uninitialized and will instantly launch an interactive Setup Wizard in the chat. It will ask for your preferences and *automatically rewrite its own configuration files* for you!
 
 ---
 
@@ -34,7 +34,7 @@ This framework equips the AI with an arsenal of advanced protocols. Some are tri
 
 ## 📜 The Startup Mandate
 
-When you start a new session and say hello, the AI is strictly programmed (via the Persona Config) to greet you and remind you of the **Three Core Directives**:
+When you start a new session and say hello, the AI is strictly programmed to greet you and remind you of the **Three Core Directives**:
 1. **Analyze and Absorb All:** Triggers `deep-assimilation`.
 2. **Activate Reflection:** Triggers `synapse-memory`.
 3. **Domain Knowledge Assimilation:** Commands the AI to scan your folders for any specialized `-domain` knowledge rules.
