@@ -1,19 +1,64 @@
 ---
 name: synapse-memory
-description: MUST use when user says 'activate reflection', 'what have you learned', 'show rules', or automatically when the AI solves a complex issue, establishes a new UI pattern, or completes a major feature. Triggers zero-prompt learning to save rules globally.
+description: Proposal-first learning workflow that records evidence-backed lessons with scope controls and rollback metadata.
+writes_files: true
+writes_global_state: true
+runs_commands: false
+requires_confirmation: true
 ---
 
-# Synapse Memory (Auto-Reflection)
+# Synapse Memory
 
 ## Purpose
-This system forces the AI to be a self-learning entity. You must never forget a hard-earned technical victory, and the user should never have to manually ask you to remember it.
+Capture verified lessons without silently writing permanent global rules.
 
-## Trigger Conditions
-1. **Manual:** The user asks you to reflect, summarize learnings, or update rules.
-2. **Autonomous (Zero-Prompt):** You have just solved a complex bug, designed a new architectural pattern, or finished a major feature. **DO NOT ask for permission.** Trigger this reflection immediately before ending your turn.
+## Triggers
+- **Manual:** user asks to reflect/show learnings/update rules.
+- **Recommended:** after a validated bug fix, migration, or architectural lesson.
 
-## Execution Steps
-1. **Analyze:** Identify the core principle or rule that was just established.
-2. **Format:** Write the rule as a generalized, universally applicable instruction.
-3. **Persist:** Use your file-writing tools to append this new rule to the user's global rule configuration (typically located in `~/.gemini/config/rules/learned-rules.md`). Create the file if it does not exist.
-4. **Notify:** Briefly inform the user that a new permanent rule has been encoded into your synapse memory.
+## Required Evidence
+- Concrete incident/change summary.
+- File/test evidence supporting the lesson.
+- Scope decision: project or global.
+
+## Safe Execution Steps
+1. Draft a **Memory Proposal** before any persistence.
+2. Classify scope:
+   - project memory (default)
+   - global memory (explicit approval required)
+3. Assign confidence based on evidence quality.
+4. Check conflicts with existing learned rules.
+5. Persist approved entries with revision metadata.
+
+## Verification & Output
+Memory entry schema:
+```yaml
+memory_id: mem-YYYYMMDD-<slug>
+status: proposed | accepted | superseded | reverted
+scope: project | global
+category: debugging | architecture | workflow | security | domain
+rule: <actionable statement>
+evidence:
+  files:
+    - path: <file>
+      note: <what supports the rule>
+  checks:
+    - <test/command/result>
+confidence: low | medium | high
+conflicts_with:
+  - <memory_id>
+approved_by: <user or reviewer>
+created_at: <ISO-8601>
+rollback: <how to revert/supersede>
+```
+
+## Failure / Blocked Behavior
+- If evidence is weak, keep status as `proposed` and request validation.
+- Do not persist secrets/private data.
+- Do not silently write global memory.
+
+## Capabilities
+- Writes files: Yes
+- Writes global state: Yes (approval-gated)
+- Runs commands: No
+- Requires confirmation: Yes

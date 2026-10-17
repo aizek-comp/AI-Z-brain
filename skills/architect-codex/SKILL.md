@@ -1,14 +1,52 @@
 ---
 name: architect-codex
-description: Auto-triggers when a non-obvious architectural decision or trade-off is made during conversation to log the reasoning permanently.
+description: ADR-style decision logging for non-trivial trade-offs with evidence and revisit criteria.
+writes_files: true
+writes_global_state: false
+runs_commands: false
+requires_confirmation: true
 ---
 
-# Architect Codex (Decision Log)
+# Architect Codex
 
 ## Purpose
-Ensures that the "why" behind the code is never lost. When the AI and user make a complex architectural trade-off, it is logged into the Codex.
+Record why important technical decisions were made.
 
-## Execution Steps
-1. **Identify Trade-off:** A decision was just made (e.g., choosing NoSQL over SQL, or Client-side vs Server-side rendering).
-2. **Draft Entry:** Write a concise log explaining the context, the options considered, and the final decision.
-3. **Persist:** Append this log to a `decision-log.md` file in the user's project documentation folder.
+## Triggers
+- **Manual:** user asks to log/document a decision.
+- **Recommended:** after non-trivial trade-offs that affect architecture.
+
+## Required Evidence
+- Decision context and constraints.
+- Options considered.
+- Chosen option with rationale.
+
+## Safe Execution Steps
+1. Draft an ADR entry proposal.
+2. Confirm target file/location in project docs.
+3. Append only after user confirmation.
+4. Link related tickets/PRs if available.
+
+## Verification & Output
+Use this template:
+```
+# ADR-XXXX: <Title>
+- Status: Proposed | Accepted | Superseded
+- Date: YYYY-MM-DD
+- Context:
+- Options considered:
+- Decision:
+- Consequences:
+- Revisit triggers:
+- Rollback/superseded-by:
+```
+
+## Failure / Blocked Behavior
+- If evidence is weak, keep status as `Proposed` and request missing context.
+- Do not log secrets or sensitive operational details.
+
+## Capabilities
+- Writes files: Yes (project ADR/decision log)
+- Writes global state: No
+- Runs commands: No
+- Requires confirmation: Yes

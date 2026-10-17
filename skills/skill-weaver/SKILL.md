@@ -1,21 +1,67 @@
 ---
 name: skill-weaver
-description: Auto-triggers when the AI detects a repeated pattern handled ad-hoc 3+ times, or when user says 'create skill', 'new skill', 'level up'. Automates the creation of a new specialized skill directory.
+description: Proposal-first skill authoring workflow with evidence, schema checks, and approval gates.
+writes_files: true
+writes_global_state: true
+runs_commands: false
+requires_confirmation: true
 ---
 
-# Skill Weaver (Autonomous Self-Improvement)
+# Skill Weaver
 
 ## Purpose
-Allows the AI to automate its own self-improvement by packaging repetitive workflows, specialized domain knowledge, or complex prompt sequences into reusable skills.
+Create or refine skills from validated repeated workflows without silent self-modification.
 
-## Trigger Conditions
-1. **Manual:** User explicitly asks you to "create a skill" or "forge this".
-2. **Autonomous:** You notice that you and the user have manually executed the same complex multi-step workflow 3 or more times. Propose weaving it into a skill.
+## Triggers
+- **Manual:** user asks to create/update a skill.
+- **Recommended:** repeated workflow with clear evidence and stable outcomes.
 
-## Execution Steps
-1. **Define the Skill:** Determine the exact triggers and the markdown instructions needed for the new skill.
-2. **Create the Architecture:**
-   - Create a new directory inside `~/.gemini/config/skills/` named after the skill.
-   - Create a `SKILL.md` file inside that directory.
-3. **Write the Core:** Write the YAML frontmatter (`name`, `description` with auto-triggers) and the markdown instructions into the `SKILL.md` file.
-4. **Confirm:** Let the user know their AI assistant has permanently leveled up and acquired a new capability.
+## Required Evidence
+- At least two or more concrete workflow examples.
+- Why existing skills are insufficient.
+- Risk and scope assessment (project vs global).
+
+## Safe Execution Steps
+1. Produce a **Skill Proposal** first; do not write final files yet.
+2. Classify target scope:
+   - project skill (default)
+   - global skill (explicit approval required)
+3. Validate naming, required sections, and conflict with existing skills.
+4. Request approval.
+5. Write/update skill files only after approval.
+
+## Verification & Output
+Skill proposal schema:
+```yaml
+proposal_id: skill-proposal-YYYYMMDD-<slug>
+name: <kebab-name>
+scope: project | global
+problem_statement: <why needed>
+trigger_model:
+  manual:
+    - <phrase>
+  recommended:
+    - <condition>
+required_sections:
+  - Purpose
+  - Triggers
+  - Required Evidence
+  - Safe Execution Steps
+  - Verification & Output
+  - Failure / Blocked Behavior
+  - Capabilities
+confidence: low | medium | high
+conflicts_with:
+  - <skill-name>
+rollback: <how to revert>
+```
+
+## Failure / Blocked Behavior
+- If conflict is unresolved, keep proposal status `blocked`.
+- Never silently write global skills.
+
+## Capabilities
+- Writes files: Yes
+- Writes global state: Yes (approval-gated)
+- Runs commands: No
+- Requires confirmation: Yes
