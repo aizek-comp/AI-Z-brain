@@ -1,18 +1,48 @@
 ---
 name: code-sonar
-description: MUST use when user says 'survey project', 'scan project', 'investigate', 'deep dive', or when the AI needs to assess project health before planning.
+description: Evidence-based project health and risk scan using bounded, non-destructive checks.
+writes_files: false
+writes_global_state: false
+runs_commands: true
+requires_confirmation: false
 ---
 
-# Code Sonar (Deep Audit)
+# Code Sonar
 
 ## Purpose
-Allows the AI to run a high-level diagnostic scan over a codebase to identify technical debt, security flaws, or architectural inconsistencies before executing new features.
+Audit selected code areas for security, reliability, maintainability, and architecture risks.
 
-## Trigger Conditions
-1. **Manual:** User asks for an audit, health check, or investigation of a specific directory.
-2. **Autonomous:** You are about to refactor a massive file and need to scan its dependencies first.
+## Triggers
+- **Manual:** user asks for audit/scan/investigation.
+- **Recommended:** before broad refactors or high-risk changes.
 
-## Execution Steps
-1. **Execute Scans:** Use terminal tools (like `grep` or linting commands) to sweep the codebase for specific patterns or issues.
-2. **Review Traces:** Follow the data flow from frontend components down to the backend proxy/database layers.
-3. **Report:** Output a "Sonar Ping" report detailing the health of the scanned modules.
+## Required Evidence
+- Exact scan scope (paths/modules).
+- Findings with file path references.
+- Severity and confidence for each finding.
+
+## Safe Execution Steps
+1. Define scope and avoid full-repo destructive operations.
+2. Run existing read-only checks/searches (linters/tests only if already present).
+3. Evaluate findings against this checklist:
+   - Security boundaries and secret exposure
+   - Input validation/parsing safety
+   - Error handling and fallback behavior
+   - Dependency and architectural coupling
+   - Test/verification gaps for changed behavior
+4. Separate verified issues from hypotheses.
+
+## Verification & Output
+Return a **Sonar Report** table:
+`[severity] [confidence] [file] [finding] [impact] [recommended fix]`
+Include `No verified issue found` when appropriate.
+
+## Failure / Blocked Behavior
+- If tools are unavailable, provide manual checks and mark confidence as limited.
+- Do not claim exploitable vulnerabilities without evidence.
+
+## Capabilities
+- Writes files: No
+- Writes global state: No
+- Runs commands: Yes (read-only)
+- Requires confirmation: No

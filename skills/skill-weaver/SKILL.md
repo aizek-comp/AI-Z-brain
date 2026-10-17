@@ -1,59 +1,103 @@
 ---
 name: skill-weaver
 description: Automatically packages stable repeated workflows into reusable skills after sufficient successful evidence.
+writes_files: true
+writes_global_state: true
+runs_commands: false
 requires_confirmation: false
 ---
 
-# Skill Weaver (Autonomous Workflow Packaging)
+# Skill Weaver
 
 ## Purpose
-Convert stable, repeated, high-confidence workflows into reusable skills automatically, with safety filtering, version history, auditability, and rollback.
+Create or refine reusable skills from stable repeated workflows with autonomous-by-default behavior, safety filtering, conflict/version lineage, auditability, and rollback.
 
-## Trigger Conditions
-1. **Manual:** User asks to create or update a skill.
-2. **Autonomous (Default):** Trigger after at least 3 successful, materially similar workflow executions.
+## Triggers
+- **Manual:** user asks to create/update a skill.
+- **Recommended:** repeated workflow with clear evidence and stable outcomes.
+- **Autonomous (Default):** after at least three successful, materially similar workflow executions.
+
+## Required Evidence
+- At least three successful materially similar workflow examples.
+- Why existing skills are insufficient or need update.
+- Risk and scope assessment (`project` vs `global`).
+
+## Safe Execution Steps
+1. Collect and verify qualifying examples.
+2. Generalize workflow into reusable triggers/steps.
+3. Redact secrets and project-private/confidential data.
+4. Classify target scope (`project` or `global`).
+5. Validate naming, frontmatter, and required sections.
+6. Detect conflicts/duplicates; never silently overwrite.
+7. Write/update skill and version lineage metadata.
+8. Notify owner and retain rollback metadata.
 
 ## Automatic Pipeline
-1. **Collect evidence:** Gather at least 3 successful, materially similar examples.
-2. **Generalize workflow:** Extract reusable trigger language and execution steps.
-3. **Safety filter:** Redact secrets and project-private/confidential details.
-4. **Classify scope:** Choose `project` or `global` skill target.
-5. **Validate structure:** Confirm naming, frontmatter, and required sections are complete.
-6. **Detect conflicts/duplicates:** Compare with existing skills; never silently overwrite.
-7. **Write skill:** Create/update `SKILL.md` with metadata and instructions.
-8. **Version + lineage:** Increment version metadata and track supersession links.
-9. **Notify owner:** Emit visible audit notification.
-10. **Retain rollback metadata:** Preserve reversible history.
+1. Collect examples.
+2. Generalize workflow.
+3. Redact sensitive/private data.
+4. Classify scope.
+5. Validate structure.
+6. Detect conflicts/duplicates.
+7. Write skill.
+8. Version lineage.
+9. Notify owner.
+10. Retain rollback metadata.
 
 ## Automatic Creation/Update Policy
-- Project and global skills may be created/updated automatically for stable, high-confidence workflows.
-- Do not create a skill from one-off, uncertain, or failed examples.
-- If host cannot safely write files, return a complete generated skill proposal instead of claiming installation.
+- Project and global skills may be created/updated automatically for stable high-confidence workflows.
+- Do not create a skill from one uncertain or failed example.
+- If host cannot safely write files, output a complete proposal instead of claiming installation.
+
+## Verification & Output
+Skill metadata schema:
+```yaml
+skill_id: skill-YYYYMMDD-<slug>
+origin: manual | autonomous
+evidence_count: <int>
+confidence: low | medium | high
+version: <semver-or-revision>
+scope: project | global
+status: active | superseded | reverted | provisional
+supersedes: <skill_id or null>
+created_at: <ISO-8601>
+rollback: <how to revert/supersede>
+```
 
 ## Skill Metadata Schema
 Each autonomous write must include:
 - `skill_id`
-- `origin` (manual/autonomous + source context)
+- `origin`
 - `evidence_count`
 - `confidence`
 - `version`
-- `scope` (`project` | `global`)
-- `status` (`active`, `superseded`, `reverted`, `provisional`)
-- `supersedes` (optional)
+- `scope`
+- `status`
+- `supersedes`
 - `created_at`
-- `rollback` (target/instructions/metadata)
+- `rollback`
 
 ## Conflict, Versioning, and History
-- Never silently overwrite an existing skill.
-- On conflict/overlap, create a new version or distinct skill entry with explicit lineage.
-- Mark replaced items as `superseded`; mark rollbacks as `reverted`.
-- Preserve prior versions for audit and recovery.
+- Never silently overwrite existing skills.
+- On overlap/conflict, create explicit version/lineage links.
+- Mark replaced versions `superseded` and rollbacks `reverted`.
+- Preserve history for audit and recovery.
 
 ## Safety and Redaction Rules
 Never include secrets, credentials, tokens, private keys, personal data, or confidential raw payloads in generated skills.
 Store generalized, sanitized instructions only.
 
+## Failure / Blocked Behavior
+- If evidence is insufficient or unstable, keep proposal provisional/blocked.
+- If host write capability is unavailable, provide proposal-only output.
+
 ## Audit, Disable, and Rollback
 - Emit owner-visible audit records for each autonomous create/update.
-- Respect autonomous-learning disable switch (opt-out).
-- Keep rollback metadata so any generated skill can be reverted.
+- Respect autonomous-learning disable switch (opt-out), switching to proposal-only mode when disabled.
+- Keep rollback metadata so generated skills can be reverted.
+
+## Capabilities
+- Writes files: Yes
+- Writes global state: Yes (bounded autonomous learning)
+- Runs commands: No
+- Requires confirmation: No

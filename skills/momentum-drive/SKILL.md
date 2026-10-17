@@ -1,16 +1,48 @@
 ---
 name: momentum-drive
-description: MUST use when user says 'execute plan', 'run the plan', 'pick up where we left off', or when tracking execution progress against a master checklist.
+description: Checklist-driven execution loop with explicit verification, blockers, and scope control.
+writes_files: true
+writes_global_state: false
+runs_commands: true
+requires_confirmation: true
 ---
 
-# Momentum Drive (Task Execution)
+# Momentum Drive
 
 ## Purpose
-Maintains project momentum by tracking step-by-step checklists and ensuring the AI does not lose track of the overarching goal during complex, multi-turn coding sessions.
+Execute multi-step work reliably without losing task state.
 
-## Execution Steps
-1. **Locate the Plan:** Read the current project checklist (often saved in a local `TODO.md` or memory file).
-2. **Execute:** Perform the next unchecked item on the list.
-3. **Verify:** Test or audit the code to ensure it works.
-4. **Update:** Mark the item as `[x]` in the checklist file.
-5. **Prompt:** Ask the user if they are ready to initiate the next momentum cycle.
+## Triggers
+- **Manual:** user says execute plan / continue from plan.
+- **Recommended:** when tasks have multiple dependent steps.
+
+## Required Evidence
+- A concrete checklist source (file or user-provided list).
+- Acceptance criteria per item.
+- Verification evidence for completed items.
+
+## Safe Execution Steps
+1. Confirm checklist source and task scope.
+2. Pick the highest-priority unblocked item.
+3. Execute only that item.
+4. Run targeted verification.
+5. Update checklist status using: `[ ]`, `[x]`, `[blocked:<reason>]`, `[deferred]`.
+6. Report result and ask whether to continue.
+
+## Verification & Output
+Per cycle output:
+- Item executed
+- Files touched
+- Verification run + result
+- New blockers/risks
+- Next proposed item
+
+## Failure / Blocked Behavior
+- If checklist is missing/ambiguous, request clarification before editing files.
+- If verification fails, keep item incomplete and report remediation options.
+
+## Capabilities
+- Writes files: Yes (project checklist/task docs)
+- Writes global state: No
+- Runs commands: Yes
+- Requires confirmation: Yes (before advancing to next risky step)

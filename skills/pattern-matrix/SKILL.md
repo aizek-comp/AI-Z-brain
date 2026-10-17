@@ -1,13 +1,56 @@
 ---
 name: pattern-matrix
-description: MUST use when saving to the library, searching for existing knowledge, installing pre-made UI items, or when about to create a new reusable component.
+description: Reusable pattern proposal/retrieval workflow with compatibility checks and safe storage scope.
+writes_files: true
+writes_global_state: true
+runs_commands: false
+requires_confirmation: true
 ---
 
-# Pattern Matrix (Knowledge Library)
+# Pattern Matrix
 
 ## Purpose
-Functions as an Akashic Record for the developer. Saves reusable code blocks, UI components, and boilerplate scripts so the AI can retrieve them instantly in future projects instead of writing them from scratch.
+Store and retrieve reusable implementation patterns safely.
 
-## Execution Steps
-1. **Save Mode:** Take a generalized version of the code and write it to `~/.gemini/config/library/`.
-2. **Retrieve Mode:** Use search tools to find previously saved patterns in the library and inject them directly into the current codebase.
+## Triggers
+- **Manual:** user asks to save/reuse a pattern.
+- **Recommended:** after a validated reusable implementation appears.
+
+## Required Evidence
+- Working example location and context.
+- Preconditions/compatibility notes.
+- Security/privacy review outcome.
+
+## Safe Execution Steps
+1. Build a **Pattern Proposal** first.
+2. Classify scope: project library (default) or global library (approval required).
+3. Sanitize secrets/proprietary data.
+4. Save only generalized pattern + metadata.
+5. On retrieval, verify compatibility before use.
+
+## Verification & Output
+Pattern proposal schema:
+```yaml
+id: pattern-YYYYMMDD-<slug>
+scope: project | global
+source_files:
+  - path: <file>
+compatibility:
+  language: <language>
+  framework: <framework/version>
+constraints:
+  - <constraint>
+security_review: pass | fail | needs-review
+confidence: low | medium | high
+rollback: <how to remove/revert>
+```
+
+## Failure / Blocked Behavior
+- If compatibility or provenance is unclear, do not store/reuse; request clarification.
+- Global writes require explicit approval.
+
+## Capabilities
+- Writes files: Yes
+- Writes global state: Yes (approval-gated)
+- Runs commands: No
+- Requires confirmation: Yes

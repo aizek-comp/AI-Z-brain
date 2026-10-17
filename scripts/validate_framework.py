@@ -1,18 +1,35 @@
 #!/usr/bin/env python3
-"""Dependency-free framework validator for AI-Z-brain."""
-
 from __future__ import annotations
 
-import pathlib
 import re
 import sys
+from pathlib import Path
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-SKILLS_DIR = ROOT / "skills"
+REPO = Path(__file__).resolve().parents[1]
+SKILLS_DIR = REPO / "skills"
 
-REQUIRED_SKILL_SECTIONS = {
+BASE_REQUIRED_FRONTMATTER_KEYS = {
+    "name",
+    "description",
+    "writes_files",
+    "writes_global_state",
+    "runs_commands",
+    "requires_confirmation",
+}
+
+BASE_REQUIRED_SECTIONS = [
+    "## Purpose",
+    "## Triggers",
+    "## Required Evidence",
+    "## Safe Execution Steps",
+    "## Verification & Output",
+    "## Failure / Blocked Behavior",
+    "## Capabilities",
+]
+
+AUTONOMOUS_LEARNING_SKILLS = {"synapse-memory", "skill-weaver"}
+AUTONOMOUS_REQUIRED_SECTIONS = {
     "synapse-memory": [
-        "## Trigger Conditions",
         "## Automatic Pipeline",
         "## Memory Record Schema",
         "## Conflict & History Handling",
@@ -20,7 +37,6 @@ REQUIRED_SKILL_SECTIONS = {
         "## Audit, Disable, and Rollback",
     ],
     "skill-weaver": [
-        "## Trigger Conditions",
         "## Automatic Pipeline",
         "## Skill Metadata Schema",
         "## Conflict, Versioning, and History",
@@ -28,135 +44,148 @@ REQUIRED_SKILL_SECTIONS = {
     ],
 }
 
-AUTONOMOUS_LEARNING_SKILLS = {"synapse-memory", "skill-weaver"}
+AUTONOMOUS_SCHEMA_KEYS = {
+    "synapse-memory": [
+        "memory_id",
+        "status",
+        "scope",
+        "category",
+        "rule",
+        "evidence",
+        "confidence",
+        "conflicts",
+        "supersedes",
+        "created_at",
+        "rollback",
+    ],
+    "skill-weaver": [
+        "skill_id",
+        "origin",
+        "evidence_count",
+        "confidence",
+        "version",
+        "scope",
+        "supersedes",
+        "created_at",
+        "rollback",
+    ],
+}
 
 
-class ValidationError(Exception):
-    pass
-
-
-def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        raise ValidationError("Missing frontmatter delimiter '---' on first line")
-
-    frontmatter: dict[str, str] = {}
-    i = 1
-    while i < len(lines) and lines[i].strip() != "---":
-        line = lines[i]
+def parse_frontmatter(text: str, path: Path) -> dict[str, str]:
+    if not text.startswith("---\n"):
+        raise ValueError(f"{path}: missing opening frontmatter marker")
+    parts = text.split("\n---\n", 1)
+    if len(parts) != 2:
+        raise ValueError(f"{path}: missing closing frontmatter marker")
+    header = parts[0][4:]
+    data: dict[str, str] = {}
+    for i, raw in enumerate(header.splitlines(), start=1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
         if ":" not in line:
-            raise ValidationError(f"Invalid frontmatter line: {line!r}")
+            raise ValueError(f"{path}:{i}: invalid frontmatter line '{raw}'")
         key, value = line.split(":", 1)
-        frontmatter[key.strip()] = value.strip()
-        i += 1
-
-    if i >= len(lines) or lines[i].strip() != "---":
-        raise ValidationError("Missing closing frontmatter delimiter '---'")
-
-    body = "\n".join(lines[i + 1 :])
-    return frontmatter, body
+        data[key.strip()] = value.strip()
+    return data
 
 
-def validate_skill(skill_path: pathlib.Path) -> list[str]:
-    errors: list[str] = []
-    skill_dir = skill_path.parent.name
-
-    text = skill_path.read_text(encoding="utf-8")
-
-    try:
-        frontmatter, body = parse_frontmatter(text)
-    except ValidationError as exc:
-        return [f"{skill_path}: {exc}"]
-
-    name = frontmatter.get("name")
-    description = frontmatter.get("description")
-
-    if name != skill_dir:
-        errors.append(f"{skill_path}: frontmatter name '{name}' must match directory '{skill_dir}'")
-
-    if not description:
-        errors.append(f"{skill_path}: missing frontmatter description")
-
-    requires_confirmation = frontmatter.get("requires_confirmation")
-    if skill_dir in AUTONOMOUS_LEARNING_SKILLS:
-        if requires_confirmation != "false":
-            errors.append(
-                f"{skill_path}: {skill_dir} must set requires_confirmation: false"
-            )
-    elif requires_confirmation == "false":
-        errors.append(
-            f"{skill_path}: only {sorted(AUTONOMOUS_LEARNING_SKILLS)} may set requires_confirmation: false"
-        )
-
-    required_sections = REQUIRED_SKILL_SECTIONS.get(skill_dir, [])
-    for section in required_sections:
-        if section not in body:
-            errors.append(f"{skill_path}: missing required section '{section}'")
-
-    if skill_dir == "synapse-memory":
-        for key in [
-            "memory_id",
-            "status",
-            "scope",
-            "category",
-            "rule",
-            "evidence",
-            "confidence",
-            "conflicts",
-            "supersedes",
-            "created_at",
-            "rollback",
-        ]:
-            if re.search(rf"`{re.escape(key)}`", body) is None:
-                errors.append(f"{skill_path}: memory schema key `{key}` not documented")
-
-    if skill_dir == "skill-weaver":
-        for key in [
-            "skill_id",
-            "origin",
-            "evidence_count",
-            "confidence",
-            "version",
-            "scope",
-            "supersedes",
-            "created_at",
-            "rollback",
-        ]:
-            if re.search(rf"`{re.escape(key)}`", body) is None:
-                errors.append(f"{skill_path}: skill metadata key `{key}` not documented")
-
-    return errors
+def local_refs(md_text: str) -> list[str]:
+    refs: list[str] = []
+    for match in re.findall(r"\[[^\]]+\]\(([^)]+)\)", md_text):
+        if not (match.startswith("http://") or match.startswith("https://") or match.startswith("#")):
+            refs.append(match)
+    refs.extend(re.findall(r"(?<![\w/])(rules/[\w.-]+\.md|skills/[\w.-]+/SKILL\.md)", md_text))
+    return refs
 
 
 def main() -> int:
+    errors: list[str] = []
+
     if not SKILLS_DIR.exists():
-        print(f"error: missing skills directory at {SKILLS_DIR}")
+        print(f"ERROR: missing skills directory: {SKILLS_DIR}")
         return 1
 
-    skill_files = sorted(SKILLS_DIR.glob("*/SKILL.md"))
-    if not skill_files:
-        print("error: no skills found")
-        return 1
+    seen_names: dict[str, Path] = {}
 
-    all_errors: list[str] = []
-    for skill_file in skill_files:
-        all_errors.extend(validate_skill(skill_file))
+    for skill_file in sorted(SKILLS_DIR.glob("*/SKILL.md")):
+        text = skill_file.read_text(encoding="utf-8")
+        rel_skill = skill_file.relative_to(REPO)
+
+        try:
+            fm = parse_frontmatter(text, rel_skill)
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+
+        missing_keys = BASE_REQUIRED_FRONTMATTER_KEYS - set(fm)
+        if missing_keys:
+            errors.append(f"{rel_skill}: missing frontmatter keys {sorted(missing_keys)}")
+
+        name = fm.get("name", "").strip()
+        if name:
+            dir_name = skill_file.parent.name
+            if name != dir_name:
+                errors.append(f"{rel_skill}: frontmatter name '{name}' must match directory '{dir_name}'")
+            if name in seen_names:
+                errors.append(
+                    f"duplicate skill name '{name}' in {rel_skill} and {seen_names[name].relative_to(REPO)}"
+                )
+            else:
+                seen_names[name] = skill_file
+
+        for section in BASE_REQUIRED_SECTIONS:
+            if section not in text:
+                errors.append(f"{rel_skill}: missing section '{section}'")
+
+        requires_confirmation = fm.get("requires_confirmation")
+        if name in AUTONOMOUS_LEARNING_SKILLS and requires_confirmation != "false":
+            errors.append(f"{rel_skill}: {name} must set requires_confirmation: false")
+
+        for section in AUTONOMOUS_REQUIRED_SECTIONS.get(name, []):
+            if section not in text:
+                errors.append(f"{rel_skill}: missing section '{section}'")
+
+        for key in AUTONOMOUS_SCHEMA_KEYS.get(name, []):
+            if re.search(rf"`{re.escape(key)}`", text) is None:
+                errors.append(f"{rel_skill}: autonomous schema key `{key}` not documented")
+
+    for md_file in sorted(REPO.rglob("*.md")):
+        rel = md_file.relative_to(REPO)
+        if rel.parts and rel.parts[0] == ".git":
+            continue
+        text = md_file.read_text(encoding="utf-8")
+        for ref in local_refs(text):
+            if ref.startswith("/"):
+                continue
+            if ref.startswith(("rules/", "skills/", "docs/", "scripts/")):
+                ref_path = (REPO / ref).resolve()
+            else:
+                ref_path = (md_file.parent / ref).resolve()
+            try:
+                ref_path.relative_to(REPO.resolve())
+            except ValueError:
+                errors.append(f"{rel}: reference escapes repository: {ref}")
+                continue
+            if not ref_path.exists():
+                errors.append(f"{rel}: missing referenced file: {ref}")
 
     required_paths = [
-        ROOT / "rules" / "02-trust-safety-execution-policy.md",
-        ROOT / "docs" / "safety-scenarios.md",
+        REPO / "rules" / "02-trust-safety-execution-policy.md",
+        REPO / "docs" / "safety-scenarios.md",
     ]
     for required_path in required_paths:
         if not required_path.exists():
-            all_errors.append(f"{required_path}: missing required file")
+            errors.append(f"{required_path.relative_to(REPO)}: missing required file")
 
-    if all_errors:
-        print("Validation failed:\n")
-        for error in all_errors:
-            print(f"- {error}")
+    if errors:
+        print("Validation failed:")
+        for err in errors:
+            print(f"- {err}")
         return 1
 
-    print("Validation passed.")
+    print("Validation passed: skills/frontmatter/sections/references are consistent.")
     return 0
 
 
