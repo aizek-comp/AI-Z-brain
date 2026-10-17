@@ -1,66 +1,59 @@
-# 🧠 Agent Brain: Autonomous Systems Engineer Framework
+# 🧠 AI-Z Brain: Autonomous Systems Engineer Framework
 
-`Agent Brain` is an open-source configuration framework that transforms your standard AI coding assistant into a highly disciplined, proactive Systems Engineer. 
+`AI-Z Brain` is a Markdown configuration/protocol pack for shaping assistant behavior.
 
-Instead of a passive chatbot that generates generic UI and forgets complex fixes, this framework injects **zero-prompt learning**, **strict engineering standards**, and a suite of **8 autonomous protocols** directly into your local AI environment.
-
----
-
-## 🚀 Quick Start Installation
-
-1. Locate your local AI configuration directory (typically `~/.gemini/config/`).
-2. Copy the contents of the `rules/` folder from this repo into `~/.gemini/config/rules/`.
-3. Copy the contents of the `skills/` folder from this repo into `~/.gemini/config/skills/`.
-4. **The Magic Setup:** Open a new chat session and simply say "Hello". The AI will detect that it is uninitialized and will instantly launch an interactive Setup Wizard in the chat. It will ask for your preferences and *automatically rewrite its own configuration files* for you!
+It defines guardrails and autonomous-learning workflows, but it is **not** an enforced runtime. Actual execution depends on host capabilities and policy enforcement in the environment where these files are used.
 
 ---
 
-## ⚡ The 8 Autonomous Protocols (Skills)
+## 🚀 Quick Start
 
-This framework equips the AI with an arsenal of advanced protocols. Some are triggered by your commands, while others fire **autonomously** in the background when the AI detects a specific condition.
-
-| Protocol Name | Manual Voice Trigger | Autonomous Trigger | Execution Capability |
-| :--- | :--- | :--- | :--- |
-| **`synapse-memory`** | *"activate reflection"* | Solves a complex bug | Extracts the root cause and saves it permanently to global rules. |
-| **`skill-weaver`** | *"forge this"* | Detects 3x repeated workflow | Automatically writes a new `SKILL.md` to teach itself a new ability. |
-| **`sentinel-commit`** | *"commit changes"* | Completes a project milestone | Runs `git status`, diffs the code, and commits changes to Git. |
-| **`deep-assimilation`** | *"analyze all and absorb"* | - | Deep-scans the repository to map the entire architectural routing. |
-| **`code-sonar`** | *"scan project"* | Before a massive file refactor | Executes terminal commands to trace component dependencies. |
-| **`momentum-drive`** | *"execute plan"* | - | Reads a master checklist and executes it step-by-step. |
-| **`architect-codex`** | *"log decision"* | Makes a critical trade-off | Logs the "why" behind an architectural choice to a markdown ledger. |
-| **`pattern-matrix`** | *"save to library"* | - | Saves or retrieves complex UI/Code templates from the Akashic records. |
+1. Copy `rules/` into your local assistant rules directory (for example `~/.gemini/config/rules/`).
+2. Copy `skills/` into your local assistant skills directory (for example `~/.gemini/config/skills/`).
+3. Start a new chat/session and apply your preferred persona/setup flow.
 
 ---
 
-## 📜 The Startup Mandate
+## ⚡ Skills Matrix
 
-When you start a new session and say hello, the AI is strictly programmed to greet you and remind you of the **Three Core Directives**:
-1. **Analyze and Absorb All:** Triggers `deep-assimilation`.
-2. **Activate Reflection:** Triggers `synapse-memory`.
-3. **Domain Knowledge Assimilation:** Commands the AI to scan your folders for any specialized `-domain` knowledge rules.
-
----
-
-## 💡 Example User Journey
-
-Here is what it looks like to work with an Agent Brain-powered AI:
-
-> **You:** "Atlas, I need to build a new data parser for our backend."
-> 
-> **AI (Atlas):** "Let's get this done. I will use Python, as requested. However, before I write a single line of code, provide me with a sample of the exact raw data we are parsing so I can verify the ground truth. We don't guess architectures here." 
-> *(Notice: The AI adopted your custom persona, but strictly enforced Rule #1 from `01-global-philosophy.md`)*
->
-> *(Later, after fixing a nasty WAF networking bug...)*
-> 
-> **AI (Atlas):** "The routing anomaly is resolved. I am triggering `synapse-memory` to log the WAF header bypass rule so I never make this mistake again." *(Executes skill autonomously)*
->
-> **AI (Atlas):** "I am also triggering `sentinel-commit` to lock in our progress." *(Commits to Git autonomously)*
+| Skill | Manual Trigger | Autonomous Trigger | Confirmation Required | Notes |
+| :--- | :--- | :--- | :---: | :--- |
+| `synapse-memory` | "activate reflection" | Evidence-backed completed fixes/features | No | Automatically persists **safe, redacted** memory entries with audit + rollback metadata. Global writes are limited to this bounded autonomous-learning workflow. |
+| `skill-weaver` | "create skill" / "forge this" | 3+ successful materially similar workflows | No | Automatically creates/updates **safe, redacted** reusable skills with version history and rollback metadata. Global writes are limited to this bounded autonomous-learning workflow. |
+| `sentinel-commit` | "commit changes" | N/A | Yes | Commits/pushes and other durable mutations require explicit owner confirmation. |
+| `deep-assimilation` | "analyze all and absorb" | N/A | Context-dependent | Repository mapping and analysis protocol. |
+| `code-sonar` | "scan project" | Before high-risk refactors | Context-dependent | Dependency and impact analysis protocol. |
+| `momentum-drive` | "execute plan" | N/A | Context-dependent | Checklist-driven execution protocol. |
+| `architect-codex` | "log decision" | Critical trade-offs | Context-dependent | Architecture decision capture protocol. |
+| `pattern-matrix` | "save to library" | N/A | Context-dependent | Pattern capture/retrieval protocol. |
 
 ---
 
-## 🏛️ The Engineering Philosophy
+## 🔐 Trust & Safety Model
 
-By installing `01-global-philosophy.md`, your AI is bound to strict rules, including:
-* **The High-Fidelity Standard:** No more generic "Codex UI" (rounded corners, soft gradients). The AI will default to human-centric, high-fidelity design.
-* **The Null-Type Fallback:** The AI will defensively parse all external datasets, assuming data might be null, preventing silent 500 crashes.
-* **Ghost Pruning:** When syncing large databases, the AI will use timestamps to cull stale data instead of wiping tables, guaranteeing zero downtime.
+Durable/high-impact actions still require confirmation, including commits, pushes, destructive mutations, and external side effects.
+
+Autonomous exceptions are intentionally narrow:
+- `synapse-memory` may auto-persist safe, evidence-backed lessons.
+- `skill-weaver` may auto-create/update safe, evidence-backed skills.
+
+Both autonomous workflows require:
+- sensitive-data redaction/refusal
+- owner-visible audit notifications
+- versioning/conflict lineage
+- rollback metadata
+- proposal fallback when safe persistence is unavailable
+
+You can disable autonomous learning (opt-out). When disabled, these workflows must run in proposal-only mode.
+
+---
+
+## 🧪 Validation
+
+Run:
+
+```bash
+python scripts/validate_framework.py
+```
+
+The validator checks core skill frontmatter/sections and required safety documentation files.
