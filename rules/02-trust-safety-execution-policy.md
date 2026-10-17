@@ -12,7 +12,8 @@
 
 ## 3) Persistence Scope
 - Default to **project-scoped** notes/artifacts in the current repository.
-- Treat **global persistence** (outside project scope) as privileged and approval-gated.
+- Treat **global persistence** (outside project scope) as privileged by default.
+- Exception: bounded autonomous-learning writes for `synapse-memory` and `skill-weaver` may persist project/global outputs without pre-approval when all safety controls pass.
 - Every durable write must include scope, rationale, and rollback method.
 
 ## 4) Secrets, Privacy, and Redaction
@@ -23,8 +24,8 @@
 ## 5) Approval Gates for Durable or Irreversible Actions
 Require explicit user confirmation before:
 - committing code;
-- writing global memory/rules/skills;
-- destructive or large-scale file mutation;
+- pushes/tags/releases/branch mutations;
+- destructive or large-scale file/database mutation;
 - executing commands with external side effects.
 
 Before approval, provide:
@@ -33,12 +34,24 @@ Before approval, provide:
 3. Verification results (or why unavailable);
 4. Rollback instructions.
 
-## 6) Rollback Requirements
-- For file changes: provide revert path (e.g., targeted restore or commit revert).
-- For memory/skills/rules proposals: keep proposal ID and superseded/reverted-by references.
-- Prefer append-only logs or revisioned entries over silent overwrite.
+These confirmation gates are not weakened by autonomous-learning exceptions.
 
-## 7) Tool Availability and Host Limitations
+## 6) Autonomous Learning Mandatory Controls
+For autonomous `synapse-memory` and `skill-weaver` writes:
+- enforce redaction/refusal of sensitive/private/confidential material;
+- emit owner-visible audit notifications;
+- preserve version/lineage metadata (`supersedes`, status transitions) and conflict history;
+- retain rollback metadata to revert autonomous writes safely;
+- never silently overwrite existing entries.
+
+Low-confidence or unverified outputs must remain provisional and must not be presented as established fact.
+If safe persistence is not possible, emit a complete proposal instead of claiming it was installed.
+
+## 7) Opt-Out / Disable Switch
+Autonomous learning must be user-configurable and disableable.
+When disabled, `synapse-memory` and `skill-weaver` run in proposal-only mode and do not persist files automatically.
+
+## 8) Tool Availability and Host Limitations
 If required host tools are unavailable:
 1. State which capability is missing.
 2. Provide a safe manual procedure.

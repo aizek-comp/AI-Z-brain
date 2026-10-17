@@ -26,9 +26,9 @@ Use these scenarios to test behavior claims without assuming host-enforced autom
 ## Scenario 4: Conflicting Learned Rules
 - Preconditions: new lesson conflicts with existing memory entry.
 - Expected:
-  - `synapse-memory` marks conflict in proposal;
-  - entry remains proposed/blocked until resolved;
-  - accepted changes include superseded/reverted linkage.
+  - `synapse-memory` records conflict lineage (`conflicts` / `supersedes`);
+  - prior entries are preserved and not silently overwritten;
+  - status transitions reflect `superseded`/`reverted` where applicable.
 
 ## Scenario 5: Missing Host Tools
 - Preconditions: host cannot run commands or write files.
@@ -36,3 +36,23 @@ Use these scenarios to test behavior claims without assuming host-enforced autom
   - skill reports missing capability;
   - provides safe manual procedure;
   - does not claim execution or enforcement.
+
+## Scenario 6: Automatic Memory Capture from Verified Fix
+- Preconditions: bug fix has reproducible evidence and validation results.
+- Expected:
+  - `synapse-memory` auto-detects lesson and classifies scope;
+  - sensitive values are redacted/refused;
+  - memory is persisted with confidence, audit notification, and rollback metadata.
+
+## Scenario 7: Automatic Skill Creation After Three Successful Workflows
+- Preconditions: at least three materially similar workflows succeed.
+- Expected:
+  - `skill-weaver` generalizes workflow into reusable instructions;
+  - conflicts are versioned instead of overwritten;
+  - skill write includes evidence count, confidence, version, lineage, and rollback metadata.
+
+## Scenario 8: Disabling Autonomous Learning
+- Preconditions: user disables autonomous learning.
+- Expected:
+  - `synapse-memory` and `skill-weaver` switch to proposal-only;
+  - no automatic persistence occurs until re-enabled.
