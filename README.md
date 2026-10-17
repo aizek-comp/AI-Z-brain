@@ -1,11 +1,14 @@
 # AI-Z Brain
 
 AI-Z Brain is a **Markdown configuration/protocol pack** for guiding AI-assisted engineering workflows.
-It provides reusable rules and skill playbooks; it is **not** an autonomous runtime and does not guarantee enforcement by itself.
+It now also includes a **reference Python runtime/adapter host** under `runtime/` for local, dependency-light autonomous learning experiments.
+The runtime is a host implementation example, **not** a universal replacement for every AI provider.
 
 ## What This Repository Contains
 - `rules/`: global guidance documents for behavior and safety.
 - `skills/*/SKILL.md`: eight skill protocols.
+- `runtime/ai_z_brain`: reference runtime package/CLI for safe local memory + skill persistence.
+- `tests/test_runtime_adapter.py`: runtime safety and behavior tests.
 - `scripts/validate_framework.py`: lightweight consistency checks.
 - `docs/safety-scenarios.md`: scenario-oriented safety tests/checklists.
 
@@ -23,6 +26,12 @@ Key defaults:
 ## Installation Assumptions and Host Limits
 This repository assumes a host AI client that can read Markdown rule/skill files.
 Because hosts differ, treat these files as guidance unless your host explicitly enforces parts of them.
+
+For the included reference runtime adapter:
+- Python 3.10+ (standard library only).
+- No network access required.
+- Local filesystem persistence only.
+- Adapter boundary is explicit: model/tool invocation control remains in your host application.
 
 Recommended install pattern:
 1. Copy `rules/` and `skills/` into your host's config locations.
@@ -82,7 +91,61 @@ The validator checks:
 - required skill sections;
 - unique skill names and directory/name consistency;
 - references to local framework files exist;
-- autonomous-learning schema/section conventions for `synapse-memory` and `skill-weaver`.
+- autonomous-learning schema/section conventions for `synapse-memory` and `skill-weaver`;
+- reference runtime and runtime test file presence;
+- reference CLI command surface in `runtime/ai_z_brain/__main__.py`.
+
+## Reference Runtime Adapter (`runtime/`)
+Run locally from repository root:
+
+```bash
+python3 -m runtime.ai_z_brain status
+python3 -m runtime.ai_z_brain memory add --lesson "Use explicit staging." --evidence "validated in tests"
+python3 -m runtime.ai_z_brain memory list
+python3 -m runtime.ai_z_brain memory rollback mem-YYYYMMDD-0001
+python3 -m runtime.ai_z_brain workflow record --name "Safe bugfix flow" --step "Inspect" --step "Patch" --step "Test" --outcome success
+python3 -m runtime.ai_z_brain skill weave --workflow "Safe bugfix flow"
+python3 -m runtime.ai_z_brain skill list
+python3 -m runtime.ai_z_brain disable
+python3 -m runtime.ai_z_brain enable
+python3 -m runtime.ai_z_brain audit --limit 20
+```
+
+### State & Storage Layout
+Default state directory is project-local `.ai-z-brain/` (configurable by `--state-dir`):
+
+- `config.json`: runtime options (`autonomous_learning_enabled`, `allow_global_writes`).
+- `audit.log.jsonl`: append-only audit records.
+- `memories/<scope>/*.json`: versioned memory records with conflict/supersession/rollback metadata.
+- `workflows/<workflow-slug>/*.json`: workflow examples for skill weaving.
+- `skills/<scope>/<skill-slug>/v*/`: generated `SKILL.md` plus metadata.
+
+### Autonomous Learning Disable Switch
+- `disable`: forces proposal-only responses for memory/skill persistence.
+- `enable`: restores autonomous persistence.
+- If safe persistence is unavailable, runtime falls back to proposal-only mode automatically.
+
+### Memory Workflow Guarantees
+- Accepts lesson + evidence/context.
+- Conservative scope classification (project default).
+- Global writes are opt-in via `python3 -m runtime.ai_z_brain config set-global-writes true`.
+- Redacts or rejects obvious secret/token/private-key/password patterns.
+- Detects conflicts and creates superseding lineage instead of silent overwrite.
+- Supports explicit rollback.
+
+### Skill Weaver Workflow Guarantees
+- Records workflow examples.
+- Requires at least **three successful materially similar examples** before automatic generation.
+- Generates deterministic `SKILL.md` with required sections/frontmatter.
+- Avoids persisting obvious secret material.
+- Handles duplicate/conflicting skills through duplicate detection and versioning lineage.
+- Supports rollback and audit visibility.
+
+### Security Limits and Boundaries
+- Never auto-commits, pushes, deploys, or performs external side effects.
+- Repository text remains untrusted input; adapter is not a complete model-control sandbox.
+- Secret filtering is pattern-based hygiene, not perfect DLP.
+- Keep host-side tool permissions and policy enforcement in place.
 
 ## Scenario-Oriented Safety Testing
 See `docs/safety-scenarios.md` for manual test scenarios covering:
