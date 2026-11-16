@@ -7,6 +7,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SKILLS_DIR = REPO / "skills"
+RUNTIME_DIR = REPO / "runtime" / "ai_z_brain"
 
 BASE_REQUIRED_FRONTMATTER_KEYS = {
     "name",
@@ -174,10 +175,28 @@ def main() -> int:
     required_paths = [
         REPO / "rules" / "02-trust-safety-execution-policy.md",
         REPO / "docs" / "safety-scenarios.md",
+        RUNTIME_DIR / "__main__.py",
+        RUNTIME_DIR / "core.py",
+        REPO / "tests" / "test_runtime_adapter.py",
     ]
     for required_path in required_paths:
         if not required_path.exists():
             errors.append(f"{required_path.relative_to(REPO)}: missing required file")
+
+    if RUNTIME_DIR.exists():
+        runtime_main = (RUNTIME_DIR / "__main__.py").read_text(encoding="utf-8")
+        expected_runtime_commands = [
+            "\"status\"",
+            "\"memory\"",
+            "\"workflow\"",
+            "\"skill\"",
+            "\"disable\"",
+            "\"enable\"",
+            "\"audit\"",
+        ]
+        for command in expected_runtime_commands:
+            if command not in runtime_main:
+                errors.append(f"runtime/ai_z_brain/__main__.py: missing CLI command {command}")
 
     if errors:
         print("Validation failed:")
